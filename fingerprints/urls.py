@@ -9,5 +9,4 @@ router.register(r'courses', CourseViewset, basename='course')
 urlpatterns = [
     path('', include(router.urls)),
     path('message/<int:pk>', SendMessageView.as_view(), name="send"),
-    path('message/', SendMessageView.as_view(), name="send")
 ]

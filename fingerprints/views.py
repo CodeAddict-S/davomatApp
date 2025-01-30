@@ -52,18 +52,15 @@ class CourseViewset(ModelViewSet):
 class SendMessageView(APIView):
     permission_classes = [IsSuperUser]
 
-    # def get(self, request, *args, **kwargs):
-    #     TeleMessages.send(request.GET.get('fingerID'), config.get('CHAT_ID'))
-    #     return Response({'details':'success'})
+    def get(self, request, *args, **kwargs):
+        return self.send(request.GET.get('message', None), kwargs.get('pk'))
 
     def post(self, request, *args, **kwargs):
-        pk = self.kwargs.get("pk")
-        if not pk:
-            return Response({"error":"No pk provided"}, status=status.HTTP_400_BAD_REQUEST)
-        
+        return self.send(request.data['message'], kwargs.get('pk'))
+
+    def send(self, message, pk):
         user = CustomUser.objects.get(id=pk)
-        message = request.data.get("message")
-        if message == '--default':
+        if message == '--default' or not message:
             message = f"{user.username} has entered ({user.type_user})"
 
         weekday = TeleMessages.get_weekday()
@@ -77,4 +74,3 @@ class SendMessageView(APIView):
 
         #!!todo send request to arduino server
         return Response({"success":True})
-    
