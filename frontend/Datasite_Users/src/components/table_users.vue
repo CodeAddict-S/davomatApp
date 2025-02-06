@@ -410,6 +410,9 @@ export default {
                     if (itemA[this.order['by']] > itemB[this.order['by']]) {
                         return true
                     }
+                    else if(itemA['id'] > itemB['id']){
+                        return true
+                    }
                     return false
                 };
                 let is_sorted = (arr) => {
