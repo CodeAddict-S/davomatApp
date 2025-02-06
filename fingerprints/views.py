@@ -1,11 +1,13 @@
 from rest_framework.viewsets import ModelViewSet
-from .models import CustomUser, Course
+from .models import CustomUser, Course, Attendance
 from .serializers import CustomUserSerializer, CourseSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from .sendMessage import TeleMessages
+import datetime
 from rest_framework import permissions, status
 from dotenv import dotenv_values
+from .tasks import send_message
 
 config = dotenv_values(".env")
 
@@ -53,24 +55,36 @@ class SendMessageView(APIView):
     permission_classes = [IsSuperUser]
 
     def get(self, request, *args, **kwargs):
-        return self.send(request.GET.get('message', None), kwargs.get('pk'))
+        return self.send('--default', request.GET.get('id'))
 
     def post(self, request, *args, **kwargs):
-        return self.send(request.data['message'], kwargs.get('pk'))
+        return self.send(request.data['message'], request.GET.get('id'))
 
     def send(self, message, pk):
         user = CustomUser.objects.get(id=pk)
-        if message == '--default' or not message:
-            message = f"{user.username} has entered ({user.type_user})"
+        attendances = Attendance.get_todays_attendances(user)
 
-        weekday = TeleMessages.get_weekday()
-        courses = user.courses.filter(days__contains=weekday)
+        if len(attendances) <= 0:
+            if message == '--default' or not message:
+                message = f"{user.username} has entered ({user.type_user})"
 
-        for course in courses:
-            TeleMessages.send(message, course.telegram_group_id)
 
-        if len(courses) == 0:
-            TeleMessages.send(f"{user.username} has entered ({user.type_user})", config.get("CHAT_ID"))
+            weekday = TeleMessages.get_weekday()
+            courses = user.courses.filter(days__contains=weekday)
 
-        #!!todo send request to arduino server
-        return Response({"success":True})
+            for course in courses:
+                send_message.delay(
+                    message, course.telegram_group_id
+                )
+
+            if len(courses) == 0:
+                send_message.delay(
+                    f"{user.username} has entered ({user.type_user})", config.get("CHAT_ID")
+                )
+
+            new_attendance = Attendance.objects.create(person=user, day=datetime.datetime.now().date())
+            new_attendance.save()
+            Attendance.delete_previous_attendances()
+            return Response({"success":True})
+        else:
+            return Response({"success":False, "details":"This person already entered today"}, status=status.HTTP_400_BAD_REQUEST)

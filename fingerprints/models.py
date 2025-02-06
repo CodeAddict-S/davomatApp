@@ -1,7 +1,7 @@
 from django.db import models
-from django.contrib.auth.models import AbstractUser
 from multiselectfield import MultiSelectField
 from dotenv import dotenv_values
+import datetime
 
 config = dotenv_values(".env")
 
@@ -44,4 +44,22 @@ class CustomUser(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return self.usernames
+        return self.username
+
+class Attendance(models.Model):
+    person = models.ForeignKey('fingerprints.CustomUser', on_delete=models.CASCADE)
+    day = models.DateField()
+
+    def __str__(self):
+        return str(self.day) + " / " + self.person.username
+    
+    @staticmethod
+    def get_todays_attendances(user):
+        attendances = Attendance.objects.filter(day=datetime.datetime.now().date()).filter(person=user)
+        return attendances
+    
+    @staticmethod
+    def delete_previous_attendances():
+        attendances = Attendance.objects.exclude(day=datetime.datetime.now().date())
+        attendances.delete()
+        return attendances

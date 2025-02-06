@@ -1,43 +1,45 @@
 <template>
-    <div class="flex">
-        <div ref="sidebar" :style="{borderRightWidth: held_mouse?'3px':'1px'}" :class="`w-[200px] shrink-0 bg-[#222222] shadow-xl border-solid border-[#cfcfcf] shadow-[#555555] h-full`">
-            <div ref="sidebar_inside">
-                <div style="box-shadow: -4px 8px 8px -8px darkgray;" :class="`z-[10] relative border-t-[3px] border-solid border-[#fadb32] ${current_link=='/sign-in/'?'mt-[2px]':'mt-[48px]'} cursor-pointer flex justify-between px-[10px] bg-[#4d4d4d]`">
-                    <p class="font-semibold text-[17px] select-none">Users</p>
+    <div :class="`flex fixed z-40 top-[70px] transition-all h-full ${$genericStore.sidebar_closed?'translate-x-[-200%]':''}`">
+        <div ref="sidebar" :class="`w-[330px] bg-[#222222] shrink-0 h-[80%] scrollbar-dark rounded-[12px] overflow-auto max-h-[1000px] shadow-xl border-solid border-[#cfcfcf] shadow-[#555555]`">
+            <div ref="sidebar_inside" class="px-[20px] py-[20px] overflow-auto">
+                <div class="flex items-center gap-[5px] mb-[10px]">
+                    <img src="@/assets/group.svg" alt="">
+                    <p class="font-semibold text-[17px] select-none">USERS</p>
                 </div>
-                <div :class="`h-[${user_links.length*30}px] z-[9] relative transition-all overflow-hidden`">
+                <div :class="`z-[9] relative transition-all overflow-hidden mb-[10px]`">
                     <RouterLink :to="item.link" v-for="item in user_links">
-                        <div class="text-light h-[30px] pl-[20px] opacity-90 shrink-0 py-[2px]" :style="{ 'background-color': current_link == item.link ? '#636363' : '#525252' }">
+                        <div :class="`text-light rounded py-[10px] pl-[20px] opacity-90 shrink-0 ${current_link==item.link?'bg-[#626262]':'hover:bg-[rgba(51,51,51,.9)]'}`">
                             <p>{{ item.name }}</p>
                         </div>
-                        <hr class="opacity-80">
                     </RouterLink>
                 </div>
-                <div style="box-shadow: -4px 8px 8px -8px darkgray;" class="z-[11] relative border-t-[3px] border-solid border-[#fadb32] mt-[2px] cursor-pointer flex justify-between px-[10px] bg-[#4d4d4d]">
-                    <p class="font-semibold text-[17px] select-none">Courses</p>
+                <div class="flex items-center gap-[5px] mb-[10px]">
+                    <img src="@/assets/notebook.svg" alt="">
+                    <p class="font-semibold text-[17px] select-none">COURSES</p>
                 </div>
-                <div :class="`h-[${course_links.length*30}px] z-[7] relative transition-all overflow-hidden`">
+                <div :class="`z-[9] relative transition-all overflow-hidden mb-[10px]`">
                     <RouterLink :to="item.link" v-for="item in course_links">
-                        <div class="text-light h-[30px] pl-[20px] opacity-90 shrink-0 py-[2px]" :style="{ 'background-color': current_link == item.link ? '#636363' : '#525252' }">
+                        <div :class="`text-light rounded py-[10px] pl-[20px] opacity-90 shrink-0 ${current_link==item.link?'bg-[#626262]':'hover:bg-[rgba(51,51,51,.9)]'}`">
                             <p>{{ item.name }}</p>
                         </div>
-                        <hr class="opacity-80">
                     </RouterLink>
                 </div>
-                <div style="box-shadow: -4px 8px 8px -8px darkgray;" class="z-[11] relative border-t-[3px] border-solid border-[#fadb32] mt-[2px] cursor-pointer flex justify-between px-[10px] bg-[#4d4d4d]">
-                    <p class="font-semibold text-[17px] select-none">Account</p>
+                <div class="flex items-center gap-[5px] mb-[10px]">
+                    <img src="@/assets/account.svg" alt="">
+                    <p class="font-semibold text-[17px] select-none">ACCOUNTS</p>
                 </div>
-                <div :class="`h-[${account_links.length*30}px] z-[7] relative transition-all overflow-hidden`">
-                    <RouterLink :to="item.link" v-for="item in account_links">
-                        <div class="text-light h-[30px] pl-[20px] opacity-90 shrink-0 py-[2px]" :style="{ 'background-color': current_link == item.link ? '#636363' : '#525252' }">
+                <div :class="`z-[9] relative transition-all overflow-hidden mb-[10px]`">
+                    <RouterLink :to="item.name!=='Logout'?item.link:''" v-for="item in account_links">
+                        <div v-if="item.name!=='Logout'" :class="`text-light rounded py-[10px] pl-[20px] opacity-90 shrink-0 ${current_link==item.link?'bg-[#626262]':'hover:bg-[rgba(51,51,51,.9)]'}`">
                             <p>{{ item.name }}</p>
                         </div>
-                        <hr class="opacity-80">
+                        <div @click="logout" v-else-if="item.name==='Logout'" :class="`text-light rounded py-[10px] pl-[20px] opacity-90 shrink-0 ${current_link==item.link?'bg-[#626262]':'hover:bg-[rgba(51,51,51,.9)]'}`">
+                            <p>{{ item.name }}</p>
+                        </div>
                     </RouterLink>
                 </div>
             </div>
         </div>
-        <div ref="drag_sidebar" class="h-full w-[20px] fixed cursor-w-resize" :style="{left: sidebar_closed?'10px':'190px'}" @pointerdown="held_mouse=true" @mousedown="held_mouse=true"></div>
     </div>
 </template>
 
@@ -80,23 +82,12 @@ export default {
             ],
             current_link: this.$route.path,
             held_mouse: false,
-            sidebar_closed: false,
         }
     },
     watch: {
         $route(to, from) {
             this.current_link = to.path;
         },
-        held_mouse(new_held_mouse){
-            if(new_held_mouse){
-                document.body.style.userSelect = 'none'
-            }else{
-                document.body.style.userSelect = 'auto'
-            }
-        },
-        sidebar_closed(new_sidebar){
-            this.$genericStore.sidebar_open = !new_sidebar
-        }
     },
     mounted(){
         document.addEventListener('touchend', (event)=>{
@@ -132,11 +123,18 @@ export default {
                 }
             }            
             this.held_mouse = false
-        })  
-        this.$refs.drag_sidebar.addEventListener('touchmove', (event)=>{
-            event.preventDefault()
         })
     },
+    methods: {
+        logout(){
+            this.$genericStore.confirm_popup("Are you sure you want to logout?").then((response)=>{
+                if(response){
+                    localStorage.removeItem('token')
+                    location.reload()
+                }
+            })
+        }
+    }
 }
 </script>
 

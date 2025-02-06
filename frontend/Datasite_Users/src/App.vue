@@ -1,9 +1,12 @@
 <template>
-    <top_headers/>
-    <div class="flex h-screen w-full mx-auto">
-        <sidebar/>
-        <div :style="{width: $genericStore.sidebar_open?'calc(100% - 150px)':'100%'}" :class="`shrink-1 overflow-auto`" >
-            <RouterView/>
+    <div :class="`${$genericStore.popup.shown?'pointer-events-none select-none':''}`">
+        <popup/>
+        <top_headers/>
+        <div class="flex w-full h-full px-[15px] mx-auto">
+            <sidebar/>
+            <div :style="{width: !$genericStore.sidebar_closed?'calc(100% - 330px)':'100%'}" :class="`shrink-1 overflow-auto ml-auto h-full min-h-screen`" >
+                <RouterView/>
+            </div>
         </div>
     </div>
 </template>
@@ -11,13 +14,14 @@
 <script>
 import sidebar from './components/sidebar.vue'
 import top_headers from './components/top_headers.vue'
-import { inject } from 'vue';
+import popup from './components/popup.vue'
 
 export default {
     name: 'App',
     components: {
         sidebar,
-        top_headers
+        top_headers,
+        popup
     },
 }
 </script>
@@ -75,7 +79,6 @@ export default {
     scrollbar-width: initial;
     scrollbar-color: #2e2e2e #1e1e1e;
 }
-
 .scrollbar-dark::-webkit-scrollbar {
     width: 8px;
 }
@@ -83,11 +86,13 @@ export default {
 .scrollbar-dark::-webkit-scrollbar-track {
     background: #1e1e1e;
 }
-
 .scrollbar-dark::-webkit-scrollbar-thumb {
     background-color: #2e2e2e;
     border-radius: 10px;
     border: 2px solid #1e1e1e;
+}
+:root {
+  color-scheme: dark;
 }
 input[type="time"]::-webkit-calendar-picker-indicator {
     filter: invert(100%);
