@@ -41,7 +41,7 @@
                                             :checked="are_all_selected()"/>
                                     </th>
                                     <th @click="order['by'] === 'id' ? order['asc'] = !order['asc'] : order['by'] = 'id'; order_table()"
-                                        class="text-center px-[40px] hover:bg-[rgba(81,81,81,0.6)]">
+                                        class="text-center wmin--[46px ] hover:bg-[rgba(81,81,81,0.6)]">
                                         <div class="flex gap-[5px]">
                                             <p>ID</p>
                                             <img src="@/assets/swap.svg" alt="" v-if="order['by'] !== 'id'"
@@ -77,7 +77,7 @@
                                         <checkBox type="checkbox" @select="select_item(student['id'])"
                                             :checked="is_selected(student['id'])"/>
                                     </td>
-                                    <td class="truncate">
+                                    <td class="truncate min-w-[60px]">
                                         <div class="flex">
                                             <p class="min-w-full truncate">{{ student['id'] }}</p>
                                         </div>
@@ -407,10 +407,19 @@ export default {
         order_table() {
             let sort = () => {
                 let is_a_bigger_than_b = (itemA, itemB) => {
+                    if(typeof(itemA[this.order['by']])==='object'){
+                        if(itemA[this.order['by']].value > itemB[this.order['by']].value){
+                            return true
+                        }
+                        else if(itemA[this.order['by']].value === itemB[this.order['by']].value && itemA['id']>itemB['id']){
+                            return true
+                        }
+                        return false
+                    }
                     if (itemA[this.order['by']] > itemB[this.order['by']]) {
                         return true
                     }
-                    else if(itemA['id'] > itemB['id']){
+                    else if(itemA['id'] > itemB['id'] && itemA[this.order['by']] === itemB[this.order['by']]){
                         return true
                     }
                     return false
